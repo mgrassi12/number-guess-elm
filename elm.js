@@ -7749,35 +7749,96 @@ var _elm_lang$html$Html_Events$Options = F2(
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
-var _user$project$Main$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		if (_p0.ctor === 'PlayerGuess') {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				_elm_lang$core$Native_Utils.update(
-					model,
-					{playerGuess: _p0._0}),
-				_elm_lang$core$Native_List.fromArray(
-					[]));
-		} else {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				model,
-				_elm_lang$core$Native_List.fromArray(
-					[]));
-		}
-	});
-var _user$project$Main$Model = F4(
-	function (a, b, c, d) {
-		return {secretNumber: a, playerGuess: b, guessCounter: c, isDone: d};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {secretNumber: a, playerGuess: b, guessCounter: c, isDone: d, status: e};
 	});
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: A4(_user$project$Main$Model, 0, '', 0, false),
+	_0: A5(_user$project$Main$Model, 3, '', 0, false, ''),
 	_1: _elm_lang$core$Platform_Cmd$none
 };
+var _user$project$Main$guessMatch = F2(
+	function (model, integer) {
+		return _elm_lang$core$Native_Utils.eq(integer, model.secretNumber) ? A5(_user$project$Main$Model, model.secretNumber, model.playerGuess, model.guessCounter + 1, true, 'Well done. You got it!') : ((_elm_lang$core$Native_Utils.cmp(integer, model.secretNumber) > 0) ? _elm_lang$core$Native_Utils.update(
+			model,
+			{status: 'Too high!', guessCounter: model.guessCounter + 1}) : _elm_lang$core$Native_Utils.update(
+			model,
+			{status: 'Too low!', guessCounter: model.guessCounter + 1}));
+	});
+var _user$project$Main$withinBounds = F2(
+	function (model, integer) {
+		return ((_elm_lang$core$Native_Utils.cmp(10, integer) > -1) && (_elm_lang$core$Native_Utils.cmp(integer, 1) > -1)) ? A2(_user$project$Main$guessMatch, model, integer) : _elm_lang$core$Native_Utils.update(
+			model,
+			{status: 'Please enter a number between one and ten!'});
+	});
+var _user$project$Main$compareGuess = function (model) {
+	var _p0 = _elm_lang$core$String$toInt(model.playerGuess);
+	if (_p0.ctor === 'Ok') {
+		return A2(_user$project$Main$withinBounds, model, _p0._0);
+	} else {
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{status: 'Please enter a number!'});
+	}
+};
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p1 = msg;
+		switch (_p1.ctor) {
+			case 'PlayerGuess':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{playerGuess: _p1._0}),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
+			case 'SubmitGuess':
+				return {
+					ctor: '_Tuple2',
+					_0: _user$project$Main$compareGuess(model),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Error':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{status: _p1._0}),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
+			case 'WrongGuess':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{status: _p1._0, guessCounter: model.guessCounter + 1}),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
+			case 'Success':
+				return {
+					ctor: '_Tuple2',
+					_0: A5(_user$project$Main$Model, model.secretNumber, model.playerGuess, model.guessCounter + 1, true, 'Well done. You got it!'),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					_elm_lang$core$Native_List.fromArray(
+						[]));
+		}
+	});
 var _user$project$Main$NoOp = {ctor: 'NoOp'};
+var _user$project$Main$Success = {ctor: 'Success'};
+var _user$project$Main$WrongGuess = function (a) {
+	return {ctor: 'WrongGuess', _0: a};
+};
+var _user$project$Main$Error = function (a) {
+	return {ctor: 'Error', _0: a};
+};
+var _user$project$Main$SubmitGuess = {ctor: 'SubmitGuess'};
 var _user$project$Main$PlayerGuess = function (a) {
 	return {ctor: 'PlayerGuess', _0: a};
 };
@@ -7823,9 +7884,19 @@ var _user$project$Main$view = function (model) {
 				_elm_lang$core$Native_List.fromArray(
 					[])),
 				A2(
-				_elm_lang$html$Html$button,
+				_elm_lang$html$Html$p,
 				_elm_lang$core$Native_List.fromArray(
 					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(model.status)
+					])),
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Events$onClick(_user$project$Main$SubmitGuess)
+					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text('Submit')

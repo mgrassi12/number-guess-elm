@@ -54,7 +54,7 @@ update msg model =
             { model | playerGuess = guessValue } ! []
 
         SubmitGuess ->
-            ( model, compareGuess model.secretNumber model.guessValue )
+            ( compareGuess model, Cmd.none )
 
         Error errorMessage ->
             { model | status = errorMessage } ! []
@@ -92,32 +92,32 @@ view model =
 -- OTHER FUNCTIONS
 
 
-compareGuess : Int -> String -> Cmd Msg
-compareGuess secretNumber guessValue =
-    case String.toInt guessValue of
+compareGuess : Model -> Model
+compareGuess model =
+    case String.toInt model.playerGuess of
         Ok integer ->
-            withinBounds integer secretNumber
+            withinBounds model integer
 
         Err a ->
-            Error "Please enter a number!"
+            { model | status = "Please enter a number!" }
 
 
-withinBounds : Int -> Int -> Cmd Msg
-withinBounds integer secretNumber =
+withinBounds : Model -> Int -> Model
+withinBounds model integer =
     if 10 >= integer && integer >= 1 then
-        guessMatch integer secretNumber
+        guessMatch model integer
     else
-        Error "Please enter a number between one and ten!"
+        { model | status = "Please enter a number between one and ten!" }
 
 
-guessMatch : Int -> Int -> Cmd Msg
-guessMatch integer secretNumber =
-    if integer == secretNumber then
-        Success
-    else if integer > secretNumber then
-        WrongGuess "Too high!"
+guessMatch : Model -> Int -> Model
+guessMatch model integer =
+    if integer == model.secretNumber then
+        Model model.secretNumber model.playerGuess (model.guessCounter + 1) True "Well done. You got it!"
+    else if integer > model.secretNumber then
+        { model | status = "Too high!", guessCounter = (model.guessCounter + 1) }
     else
-        WrongGuess "Too low!"
+        { model | status = "Too low!", guessCounter = (model.guessCounter + 1) }
 
 
 
