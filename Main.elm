@@ -5,16 +5,16 @@ import Html.App as Html
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import String
+import Random
 
-
+main : Program Never
 main =
-    Html.program
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
-
+  Html.program
+      { init = init
+      , view = view
+      , update = update
+      , subscriptions = subscriptions
+      }
 
 
 -- MODEL
@@ -31,8 +31,13 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model 3 "" 0 False "", Cmd.none )
+  ( Model 1 "" 0 False ""
+  , generateSecretNumber
+  )
 
+generateSecretNumber : Cmd Msg
+generateSecretNumber =
+  Random.generate SetSecretNumber (Random.int 1 10)
 
 
 -- UPDATE
@@ -41,32 +46,25 @@ init =
 type Msg
     = PlayerGuess String
     | SubmitGuess
-    | Error String
-    | WrongGuess String
-    | Success
-    | NoOp
+    | ResetGame
+    | SetSecretNumber Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         PlayerGuess guessValue ->
-            { model | playerGuess = guessValue } ! []
+          { model | playerGuess = guessValue } ! []
 
         SubmitGuess ->
-            ( compareGuess model, Cmd.none )
+          ( compareGuess model, Cmd.none )
 
-        Error errorMessage ->
-            { model | status = errorMessage } ! []
+        ResetGame ->
+          init
 
-        WrongGuess guessInfo ->
-            { model | status = guessInfo, guessCounter = (model.guessCounter + 1) } ! []
+        SetSecretNumber generatedNumber ->
+          { model | secretNumber = generatedNumber } ! []
 
-        Success ->
-            ( Model model.secretNumber model.playerGuess (model.guessCounter + 1) True "Well done. You got it!", Cmd.none )
-
-        NoOp ->
-            model ! []
 
 
 
@@ -79,10 +77,15 @@ view model =
         [ h1 [] [ text "I am thinking of a number..." ]
         , h3 [] [ text "Between 1 and 10" ]
         , p [] [ text "Your guess: " ]
-        , input [ placeholder "Goes here", type' "number", onInput PlayerGuess ] []
+        , input
+          [ value model.playerGuess
+          , placeholder "Goes here"
+          , type' "number"
+          , onInput PlayerGuess ]
+          []
         , p [] [ text model.status ]
         , button [ onClick SubmitGuess ] [ text "Submit" ]
-        , button [] [ text "Reset" ]
+        , button [ onClick ResetGame ] [ text "Reset" ]
         , br [] []
         , p [] [ text ("Number of guesses: " ++ (toString model.guessCounter)) ]
         ]
